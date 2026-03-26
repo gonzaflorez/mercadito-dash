@@ -677,13 +677,19 @@ function parseDate(val){
   return null;
 }
 
-function splitCSVLine(line){
-  // Maneja campos con comillas y punto y coma como separador
+function detectSep(line){
+  // Detecta si el CSV usa coma o punto y coma
+  let commas=0,semis=0;let inQ=false;
+  for(const c of line){if(c==='"'){inQ=!inQ}else if(!inQ){if(c===',')commas++;else if(c===';')semis++;}}
+  return semis>=commas?';':',';
+}
+
+function splitCSVLine(line,sep){
   const cols=[];let cur='',inQ=false;
   for(let i=0;i<line.length;i++){
     const c=line[i];
     if(c==='"'){inQ=!inQ}
-    else if(c===';'&&!inQ){cols.push(cur.trim());cur=''}
+    else if(c===sep&&!inQ){cols.push(cur.trim());cur=''}
     else{cur+=c}
   }
   cols.push(cur.trim());
@@ -694,25 +700,29 @@ function processCSV(text){
   const lines = text.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length < 2) throw new Error('El archivo parece estar vacío.');
 
+  // ── Auto-detectar separador ───────────────────────────────────
+  const sep = detectSep(lines[0]);
+
   // ── Detectar columnas por header ──────────────────────────────
-  const headers = splitCSVLine(lines[0]).map(h=>h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+  const headers = splitCSVLine(lines[0],sep).map(h=>h.toLowerCase().replace(/^"|"$/g,'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim());
 
   const findCol = (...keywords) => {
     for(const kw of keywords){
-      const i = headers.findIndex(h=>h.includes(kw));
+      const i = headers.findIndex(h=>h===kw||h.includes(kw));
       if(i>=0) return i;
     }
     return -1;
   };
 
-  const iUsuario = findCol('operador','usuario','user','operator','login','rep ');
-  const iFecha   = findCol('fecha hora','fecha_hora','datetime','timestamp','fecha','date','hora');
-  const iRuta    = findCol('ruta','route','os ','orden de salida','os_numero','ordendesalida');
+  // Columnas específicas de Invas/MercadoPago (orden de salida)
+  const iUsuario = findCol('usuario ult mod','usuario_ult_mod','operador','usuario creacion','usuario','user','operator','login');
+  const iFecha   = findCol('fecha inicio picking','fecha_inicio_picking','fecha despacho','fecha_despacho','fecha inicio','fecha hora','datetime','timestamp','fecha','date');
+  const iRuta    = findCol('nombre ruta','nombre_ruta','ruta','route','os');
 
   if(iUsuario<0 || iFecha<0){
     throw new Error(
       `No se encontraron las columnas de usuario/fecha.\n` +
-      `Headers detectados: ${headers.slice(0,25).join(' | ')}`
+      `Separador detectado: "${sep}" | Headers: ${headers.slice(0,30).join(' | ')}`
     );
   }
 
