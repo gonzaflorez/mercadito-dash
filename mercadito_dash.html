@@ -1072,14 +1072,20 @@ function readCSV(file) {
     const reader = new FileReader();
     reader.onload = e => {
       try {
-        setProgress(60, 'Parseando CSV…', 'Leyendo columnas necesarias');
-        resolve(e.target.result);
+        setProgress(60, 'Parseando CSV…', 'Detectando encoding');
+        const buf = e.target.result;
+        const bytes = new Uint8Array(buf);
+        let encoding = 'UTF-8';
+        if(bytes[0]===0xFF && bytes[1]===0xFE) encoding='UTF-16LE';
+        else if(bytes[0]===0xFE && bytes[1]===0xFF) encoding='UTF-16BE';
+        const text = new TextDecoder(encoding).decode(buf);
+        resolve(text);
       } catch(err) {
         reject(err);
       }
     };
     reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsArrayBuffer(file);
   });
 }
 
