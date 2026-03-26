@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mercadito Dash · Mercado Pago</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --mp-blue:#009ee3;--mp-blue-dark:#0070a8;--mp-teal:#00c2a8;
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f8fafc;
+  --border:#dde3ea;--text:#0d1b2a;--text-muted:#6b7a8d;
+  --ok:#00b87a;--desvio:#e8394a;--excluido:#8a94a0;--warning:#f5a623;
+  --radius:12px;--shadow:0 2px 16px rgba(0,100,180,.10);
+  --font:'Plus Jakarta Sans',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--mono);background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── HEADER ── */
+header{background:var(--text);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:68px;position:sticky;top:0;z-index:200;border-bottom:3px solid var(--mp-blue)}
+.logo{display:flex;align-items:center;gap:14px}
+.logo-badge{background:var(--mp-blue);color:#fff;font-family:var(--font);font-weight:800;font-size:11px;letter-spacing:.15em;padding:5px 12px;border-radius:6px;text-transform:uppercase}
+.logo-title{font-family:var(--font);font-weight:800;font-size:22px;color:#fff;letter-spacing:-.03em;line-height:1}
+.logo-sub{font-family:var(--font);font-size:11px;color:#5a6f82;margin-top:2px;font-weight:500;letter-spacing:.02em}
+.header-meta{font-size:11px;color:#8a99ab;text-align:right;line-height:1.6;font-family:var(--mono)}
+
+/* ── NAV ── */
+.nav-tabs{display:flex;gap:2px;background:var(--surface);border-bottom:1.5px solid var(--border);padding:0 28px;position:sticky;top:68px;z-index:150;overflow-x:auto}
+.nav-tab{padding:13px 18px;font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--text-muted);border-bottom:3px solid transparent;margin-bottom:-1.5px;transition:all .15s;white-space:nowrap}
+.nav-tab:hover{color:var(--mp-blue)}
+.nav-tab.active{color:var(--mp-blue);border-bottom-color:var(--mp-blue)}
+
+/* ── LAYOUT ── */
+main{max-width:1320px;margin:0 auto;padding:28px 24px}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+/* ── SETUP ── */
+.setup-panel{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.setup-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:end}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;font-family:var(--font)}
+.field input[type=text]{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .15s}
+.field input[type=text]:focus{border-color:var(--mp-blue)}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:18px 20px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--mp-blue);background:#e8f6fd}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:26px;margin-bottom:4px}
+.upload-text{font-size:12px;color:var(--text-muted);line-height:1.5;font-family:var(--font)}
+.upload-text strong{color:var(--mp-blue);font-weight:700}
+
+/* ── BUTTONS ── */
+.btn-primary{background:var(--mp-blue);color:#fff;border:none;border-radius:8px;padding:11px 28px;font-family:var(--font);font-weight:700;font-size:14px;cursor:pointer;transition:background .15s,transform .1s;white-space:nowrap}
+.btn-primary:hover{background:var(--mp-blue-dark);transform:translateY(-1px)}
+.btn-primary:disabled{background:#b0c4d4;cursor:not-allowed;transform:none}
+.btn-secondary{background:transparent;color:var(--mp-blue);border:1.5px solid var(--mp-blue);border-radius:8px;padding:9px 18px;font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;transition:all .15s}
+.btn-secondary:hover{background:#e8f6fd}
+
+/* ── ALERTS ── */
+.alert{padding:12px 16px;border-radius:8px;font-size:12px;margin-top:14px;display:none;font-family:var(--font)}
+.alert.show{display:block}
+.alert-info{background:#e8f6fd;border-left:3px solid var(--mp-blue);color:var(--mp-blue-dark)}
+.alert-error{background:#fdecea;border-left:3px solid var(--desvio);color:#a91a27}
+.alert-success{background:#e6f9f2;border-left:3px solid var(--ok);color:#006644}
+.loader{display:none;align-items:center;gap:10px;font-size:13px;color:var(--mp-blue);margin-top:14px;font-family:var(--font)}
+.loader.show{display:flex}
+.spinner{width:18px;height:18px;border:2.5px solid #cce8f6;border-top-color:var(--mp-blue);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:22px}
+.kpi-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:18px 14px;text-align:center;box-shadow:var(--shadow);transition:transform .15s}
+.kpi-card:hover{transform:translateY(-2px)}
+.kpi-value{font-family:var(--font);font-size:28px;font-weight:800;line-height:1;margin-bottom:6px}
+.kpi-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-family:var(--font)}
+.kpi-card.total .kpi-value{color:var(--mp-blue)}.kpi-card.ok .kpi-value{color:var(--ok)}
+.kpi-card.desvio .kpi-value{color:var(--desvio)}.kpi-card.excluido .kpi-value{color:var(--excluido)}
+.kpi-card.pct .kpi-value{color:var(--mp-teal)}.kpi-card.usuarios .kpi-value{color:var(--warning)}
+
+/* ── FILTERS ── */
+.filters-bar{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:12px 18px;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;box-shadow:var(--shadow)}
+.filters-bar label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-muted);margin-right:4px;font-family:var(--font);font-weight:600}
+.filters-bar select{padding:6px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:12px;background:var(--surface2);color:var(--text);outline:none}
+.filters-bar select:focus{border-color:var(--mp-blue)}
+.filter-group{display:flex;align-items:center;gap:6px}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px}
+.table-header{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);background:var(--surface2)}
+.table-title{font-family:var(--font);font-weight:700;font-size:15px}
+.table-count{font-size:11px;color:var(--text-muted);background:var(--bg);padding:4px 10px;border-radius:20px;border:1px solid var(--border);font-family:var(--font)}
+.table-scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:#eaf5fb}
+th{padding:9px 13px;text-align:left;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);font-weight:600;white-space:nowrap;border-bottom:1.5px solid var(--border);font-family:var(--font)}
+td{padding:8px 13px;border-bottom:1px solid #f0f4f8;vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f5fbff}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font)}
+.badge-ok{background:#e6f9f2;color:var(--ok)}.badge-desvio{background:#fdecea;color:var(--desvio)}
+.badge-excluido{background:#f0f2f4;color:var(--excluido)}.badge-manana{background:#fffbe6;color:#8a6500}
+.badge-tarde{background:#e8f0ff;color:#3156c2}
+.empty-state{text-align:center;padding:52px 20px;color:var(--text-muted);font-family:var(--font)}
+.empty-state .icon{font-size:42px;margin-bottom:10px}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.section-title{font-family:var(--font);font-weight:700;font-size:16px}
+.export-row{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+
+/* ── RANKING ── */
+.rank-section-label{font-family:var(--font);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:10px 0 12px;display:flex;align-items:center;gap:10px}
+.pill{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;font-family:var(--font)}
+.pill-green{background:#e6f9f2;color:var(--ok)}.pill-orange{background:#fff3cc;color:#7a5500}
+.ranking-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-bottom:24px}
+.rank-card{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:15px 17px;box-shadow:var(--shadow);cursor:pointer;transition:transform .15s,border-color .15s;position:relative;overflow:hidden}
+.rank-card:hover{transform:translateY(-2px);border-color:var(--mp-blue)}
+.rank-pos{position:absolute;top:11px;right:13px;font-family:var(--font);font-weight:800;font-size:18px;opacity:.1}
+.rank-name{font-family:var(--font);font-weight:700;font-size:13px;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:26px}
+.rank-bar-wrap{height:5px;background:var(--bg);border-radius:3px;margin:7px 0 6px}
+.rank-bar{height:5px;border-radius:3px;transition:width .4s}
+.rank-stats{display:flex;gap:10px;font-size:11px;color:var(--text-muted);font-family:var(--font)}
+.rank-pct{font-family:var(--font);font-weight:800;font-size:21px}
+.rank-card.verde{border-left:4px solid var(--ok)}.rank-card.amarillo{border-left:4px solid var(--warning)}.rank-card.rojo{border-left:4px solid var(--desvio)}
+.rank-divider{height:1.5px;background:var(--border);margin:8px 0 18px;border-radius:2px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,27,42,.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:16px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.22)}
+.modal-header{padding:20px 22px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:10}
+.modal-title{font-family:var(--font);font-weight:800;font-size:17px}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-muted);padding:4px 8px;border-radius:6px;transition:background .15s}
+.modal-close:hover{background:var(--bg)}
+.modal-body{padding:18px 22px}
+.ficha-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+.ficha-kpi{background:var(--surface2);border-radius:8px;padding:12px;text-align:center;border:1px solid var(--border)}
+.ficha-kpi .val{font-family:var(--font);font-weight:800;font-size:20px}
+.ficha-kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);font-family:var(--font)}
+.ficha-section-title{font-family:var(--font);font-weight:700;font-size:12px;margin:14px 0 6px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.dia-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--bg);font-size:12px}
+.dia-label{width:85px;flex-shrink:0;color:var(--text-muted);font-family:var(--font)}
+.dia-controles{display:flex;gap:5px;flex-wrap:wrap}
+.ctrl-chip{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;font-family:var(--font)}
+.ctrl-ok{background:#e6f9f2;color:var(--ok)}.ctrl-dev{background:#fdecea;color:var(--desvio)}
+.copy-btn{margin-top:14px;width:100%}
+
+/* ── RESUMEN ── */
+.resumen-box{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:26px;box-shadow:var(--shadow);margin-bottom:18px}
+.resumen-text{font-size:13px;line-height:1.9;color:var(--text);white-space:pre-line;font-family:var(--mono)}
+
+/* ── COMPARACIÓN ── */
+.comp-kpis{display:flex;gap:12px;margin-bottom:18px}
+.comp-kpi{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:16px;text-align:center;box-shadow:var(--shadow);flex:1}
+.comp-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bg);font-size:12px;font-family:var(--font)}
+.comp-row:last-child{border-bottom:none}
+.comp-name{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.comp-bars{display:flex;align-items:center;gap:8px}
+.mini-bar-wrap{width:72px;height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.mini-bar{height:5px;border-radius:3px}
+.delta-pos{color:var(--ok);font-weight:700}.delta-neg{color:var(--desvio);font-weight:700}.delta-neu{color:var(--text-muted)}
+
+
+/* ── CONFIG PAÍS ── */
+.config-panel{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:24px 28px;margin-bottom:20px;box-shadow:var(--shadow)}
+.config-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;cursor:pointer;user-select:none}
+.config-header-left{display:flex;align-items:center;gap:10px}
+.config-header h3{font-family:var(--font);font-weight:700;font-size:14px}
+.config-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#e8f0ff;color:#3156c2;font-family:var(--font);font-weight:600}
+.config-toggle{font-size:11px;color:var(--text-muted);font-family:var(--font);display:flex;align-items:center;gap:6px}
+.config-body{display:none}
+.config-body.open{display:block}
+.config-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.config-grid-2{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;margin-bottom:0}
+.config-field label{display:block;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;font-family:var(--font)}
+.config-field input[type=number],.config-field input[type=time],.config-field select{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:13px;background:var(--surface2);color:var(--text);outline:none;transition:border-color .15s}
+.config-field input:focus,.config-field select:focus{border-color:var(--mp-blue)}
+.config-section-title{font-family:var(--font);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);margin:14px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.config-lock{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--surface2);border-radius:8px;border:1.5px solid var(--border);cursor:pointer;transition:all .15s;margin-top:4px}
+.config-lock:hover{border-color:var(--mp-blue);background:#e8f6fd}
+.config-lock-icon{font-size:20px}
+.config-lock-text{font-family:var(--font);font-size:13px;color:var(--text-muted);flex:1}
+.config-lock-text strong{color:var(--text);font-weight:700}
+.config-lock-badge{font-size:10px;padding:3px 8px;border-radius:20px;background:#fdecea;color:var(--desvio);font-family:var(--font);font-weight:600}
+
+.pwd-modal-overlay{position:fixed;inset:0;background:rgba(13,27,42,.6);z-index:600;display:none;align-items:center;justify-content:center}
+.pwd-modal-overlay.show{display:flex}
+.pwd-modal{background:var(--surface);border-radius:16px;padding:32px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.25);text-align:center}
+.pwd-modal-icon{font-size:40px;margin-bottom:12px}
+.pwd-modal-title{font-family:var(--font);font-weight:800;font-size:18px;margin-bottom:6px}
+.pwd-modal-sub{font-size:12px;color:var(--text-muted);font-family:var(--font);margin-bottom:20px}
+.pwd-input{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--mono);font-size:15px;text-align:center;letter-spacing:.2em;outline:none;background:var(--surface2);color:var(--text);transition:border-color .15s;margin-bottom:12px}
+.pwd-input:focus{border-color:var(--mp-blue)}
+.pwd-input.error{border-color:var(--desvio);animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.pwd-error{font-size:12px;color:var(--desvio);font-family:var(--font);margin-bottom:12px;display:none}
+.pwd-error.show{display:block}
+.pwd-actions{display:flex;gap:10px}
+.pwd-actions .btn-primary{flex:1}
+.pwd-actions .btn-secondary{flex:1}
+.manager-unlocked-badge{font-size:11px;padding:3px 10px;border-radius:20px;background:#e6f9f2;color:var(--ok);font-family:var(--font);font-weight:600;display:none}
+.manager-unlocked-badge.show{display:inline-block}
+.config-preview{background:var(--surface2);border-radius:8px;padding:12px 16px;margin-top:14px;font-size:12px;font-family:var(--mono);color:var(--text-muted);line-height:1.9;border:1px solid var(--border)}
+.config-preview strong{color:var(--mp-blue)}
+
+/* ── LOG TAB ── */
+.log-intro{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:20px 24px;margin-bottom:20px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px}
+.log-intro-icon{font-size:32px}
+.log-intro-text h3{font-family:var(--font);font-weight:700;font-size:15px;margin-bottom:4px}
+.log-intro-text p{font-size:12px;color:var(--text-muted);font-family:var(--font);line-height:1.6}
+.log-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.log-stat{background:var(--surface);border-radius:var(--radius);border:1.5px solid var(--border);padding:16px;text-align:center;box-shadow:var(--shadow)}
+.log-stat-val{font-family:var(--font);font-weight:800;font-size:24px;color:var(--mp-blue);margin-bottom:4px}
+.log-stat-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);font-family:var(--font);font-weight:600}
+
+@media(max-width:900px){.setup-grid{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:repeat(3,1fr)}.ficha-kpis{grid-template-columns:repeat(2,1fr)}.log-stats{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.setup-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}header{padding:0 16px}main{padding:16px 12px}.nav-tabs{padding:0 10px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-badge">MP</span>
+    <div>
+      <div class="logo-title">Mercadito Dash</div>
+      <div class="logo-sub">Panel operacional · Mercado Pago</div>
+    </div>
+  </div>
+  <div class="header-meta" id="header-meta">—</div>
+</header>
+
+<nav class="nav-tabs">
+  <button class="nav-tab active" data-tab="tab-carga">📂 Carga</button>
+  <button class="nav-tab" data-tab="tab-faststart">🎯 Fast Start</button>
+  <button class="nav-tab" data-tab="tab-ranking">🏆 Ranking</button>
+  <button class="nav-tab" data-tab="tab-resumen">📝 Resumen</button>
+  <button class="nav-tab" data-tab="tab-comp">⚖ Comparar</button>
+  <button class="nav-tab" data-tab="tab-log">📋 Uso del tablero</button>
+</nav>
+
+<main>
+
+<!-- ══ CARGA ══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="tab-carga">
+  <div class="setup-panel">
+    <div class="setup-grid">
+      <div class="field">
+        <label>👤 Tu nombre (líder)</label>
+        <input type="text" id="leader-name" placeholder="Ej: Gonzalo Florez"/>
+      </div>
+      <div class="field">
+        <label>📂 CSV Invas — Semana actual</label>
+        <div class="upload-zone" id="drop-zone">
+          <input type="file" id="file-input" accept=".csv"/>
+          <div class="upload-icon">📊</div>
+          <div class="upload-text" id="upload-text-main"><strong>Hacé clic o arrastrá</strong> el CSV exportado de Invas (separado por ;)</div>
+        </div>
+      </div>
+      <div><button class="btn-primary" id="btn-process" disabled>▶ Analizar</button></div>
+    </div>
+    <div class="loader" id="loader">
+      <div style="width:100%">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <div class="spinner"></div>
+          <span id="loader-text">Procesando…</span>
+        </div>
+        <div style="height:6px;background:#dde3ea;border-radius:3px;overflow:hidden">
+          <div id="progress-bar" style="height:6px;width:0%;background:var(--mp-blue);border-radius:3px;transition:width .3s"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px" id="loader-sub"></div>
+      </div>
+    </div>
+    <div class="alert alert-info"    id="alert-info"></div>
+    <div class="alert alert-error"   id="alert-error"></div>
+    <div class="alert alert-success" id="alert-success"></div>
+  </div>
+
+  <div class="setup-panel" style="opacity:.75">
+    <div class="setup-grid" style="grid-template-columns:1fr 1fr">
+      <div class="field">
+        <label>🗃 CSV Invas — Semana anterior (opcional)</label>
+        <div class="upload-zone" id="drop-zone-prev">
+          <input type="file" id="file-input-prev" accept=".csv"/>
+          <div class="upload-icon">🗃</div>
+          <div class="upload-text" id="upload-text-prev"><strong>Hacé clic o arrastrá</strong> para habilitar la comparación de semanas</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <p style="font-size:12px;color:var(--text-muted);line-height:1.7;font-family:var(--font)">
+          Opcional. Si cargás este archivo junto con el principal, se activa la pestaña <strong>Comparar</strong> con la evolución de cada rep.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG PAÍS -->
+  <div class="config-panel">
+    <div class="config-header" onclick="toggleConfig()">
+      <div class="config-header-left">
+        <span style="font-size:18px">🌎</span>
+        <h3>Configuración de horarios</h3>
+        <span class="config-badge" id="config-pais-badge">MLA — Argentina</span>
+        <span class="manager-unlocked-badge" id="manager-unlocked-badge">🔓 Manager</span>
+      </div>
+      <div class="config-toggle" id="config-toggle-label">▼ Ver configuración</div>
+    </div>
+    <div class="config-body" id="config-body">
+
+      <!-- Selector de país — visible para todos -->
+      <div style="display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:16px">
+        <div class="config-field">
+          <label>🌎 País / Operación</label>
+          <select id="cfg-pais" onchange="aplicarPais()">
+            <option value="MLA">MLA — Argentina</option>
+            <option value="MLB">MLB — Brasil</option>
+            <option value="MLU">MLU — Uruguay</option>
+            <option value="MLC">MLC — Chile</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Zona protegida — solo manager -->
+      <div id="manager-zone-locked">
+        <div class="config-lock" onclick="abrirPasswordModal()">
+          <div class="config-lock-icon">🔒</div>
+          <div class="config-lock-text"><strong>Zona de manager</strong> — Target y tolerancias protegidos</div>
+          <div class="config-lock-badge">Bloqueado</div>
+        </div>
+      </div>
+
+      <div id="manager-zone-open" style="display:none">
+        <div class="config-section-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>🔓 Configuración de manager</span>
+          <span onclick="bloquearManager()" style="font-size:11px;color:var(--desvio);cursor:pointer;font-family:var(--font);font-weight:600">🔒 Bloquear</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="config-field">
+            <label>🎯 Target de bipeos</label>
+            <input type="number" id="cfg-target" value="6" min="1" max="999" onchange="actualizarPreview()"/>
+          </div>
+          <div class="config-field">
+            <label>⏱ Tolerancia inicio de turno (min)</label>
+            <input type="number" id="cfg-tolerancia-ini" value="0" min="0" max="60" onchange="actualizarPreview()"/>
+          </div>
+          <div class="config-field">
+            <label>⏱ Tolerancia post break (min)</label>
+            <input type="number" id="cfg-tolerancia-brk" value="0" min="0" max="60" onchange="actualizarPreview()"/>
+          </div>
+        </div>
+
+      <!-- Turno mañana -->
+      <div class="config-section-title">☀ Turno mañana</div>
+      <div class="config-grid">
+        <div class="config-field">
+          <label>Inicio turno</label>
+          <input type="time" id="cfg-man-ini" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Fin turno</label>
+          <input type="time" id="cfg-man-fin" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Inicio break</label>
+          <input type="time" id="cfg-man-brk-ini" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Fin break</label>
+          <input type="time" id="cfg-man-brk-fin" onchange="actualizarPreview()"/>
+        </div>
+      </div>
+
+      <!-- Turno tarde -->
+      <div class="config-section-title">🌙 Turno tarde</div>
+      <div class="config-grid">
+        <div class="config-field">
+          <label>Inicio turno</label>
+          <input type="time" id="cfg-tar-ini" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Fin turno</label>
+          <input type="time" id="cfg-tar-fin" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Inicio break</label>
+          <input type="time" id="cfg-tar-brk-ini" onchange="actualizarPreview()"/>
+        </div>
+        <div class="config-field">
+          <label>Fin break</label>
+          <input type="time" id="cfg-tar-brk-fin" onchange="actualizarPreview()"/>
+        </div>
+      </div>
+
+      <!-- Preview -->
+      <div class="config-preview" id="config-preview">—</div>
+      </div><!-- /manager-zone-open -->
+
+    </div><!-- /config-body -->
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ PRODUCTIVIDAD ══════════════════════════════════════════════ -->
+<!-- ══ FAST START ════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-faststart">
+  <div class="kpi-grid" id="kpi-grid">
+    <div class="kpi-card usuarios"><div class="kpi-value" id="k-users">—</div><div class="kpi-label">Usuarios</div></div>
+    <div class="kpi-card ok"><div class="kpi-value" id="k-ok">—</div><div class="kpi-label">OK</div></div>
+    <div class="kpi-card desvio"><div class="kpi-value" id="k-dev">—</div><div class="kpi-label">Desvíos</div></div>
+    <div class="kpi-card pct"><div class="kpi-value" id="k-pct">—</div><div class="kpi-label">Cumplimiento</div></div>
+    <div class="kpi-card excluido" id="card-exc" style="display:none"><div class="kpi-value" id="k-exc">—</div><div class="kpi-label">Excluidos</div></div>
+  </div>
+  <div class="filters-bar">
+    <span style="font-family:var(--font);font-weight:700;font-size:13px;margin-right:8px">🎯 Fast Start</span>
+    <div class="filter-group"><label>Turno</label>
+      <select id="f-turno"><option value="">Todos</option><option>Mañana</option><option>Tarde</option></select></div>
+    <div class="filter-group"><label>Estado</label>
+      <select id="f-estado"><option value="">Todos</option><option>OK</option><option>Desvío</option><option>Excluido</option></select></div>
+    <div class="filter-group"><label>Control</label>
+      <select id="f-control"><option value="">Todos</option><option>Inicio de turno</option><option>Post Break</option></select></div>
+    <div class="filter-group"><label>Fecha</label><select id="f-fecha"><option value="">Todas</option></select></div>
+    <div class="filter-group"><label>Usuario</label><select id="f-usuario"><option value="">Todos</option></select></div>
+    <button class="btn-secondary" id="btn-clear-filters">Limpiar</button>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Detalle de controles Fast Start</div>
+      <span class="table-count" id="row-count">0 registros</span>
+    </div>
+    <div class="table-scroll">
+      <table><thead><tr>
+        <th>Usuario</th><th>Fecha</th><th>Turno</th><th>Control</th>
+        <th>Hora de corte</th><th>Bipeos acumulados</th>
+        <th>Primer bip</th><th>Estado</th><th>Detalle</th>
+      </tr></thead><tbody id="results-body"></tbody></table>
+    </div>
+  </div>
+  <div class="export-row"><button class="btn-secondary" id="btn-export">⬇ Exportar CSV</button></div>
+</div>
+
+<!-- ══ RANKING ════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-ranking">
+  <div class="section-header">
+    <div class="section-title">🏆 Ranking Fast Start</div>
+    <select id="rank-turno" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:12px;background:var(--surface2);outline:none">
+      <option value="">Ambos turnos</option><option>Mañana</option><option>Tarde</option>
+    </select>
+  </div>
+  <div class="rank-section-label">✅ Sin necesidad de feedback <span class="pill pill-green" id="pill-ok-count">0 reps</span></div>
+  <div class="ranking-grid" id="ranking-grid-ok"><div class="empty-state"><div class="icon">🏆</div><p>Cargá un archivo para ver el ranking.</p></div></div>
+  <div class="rank-divider"></div>
+  <div class="rank-section-label">⚠️ Requieren feedback <span class="pill pill-orange" id="pill-dev-count">0 reps</span></div>
+  <div class="ranking-grid" id="ranking-grid-dev"><div class="empty-state" style="padding:20px"><p>—</p></div></div>
+</div>
+
+<!-- ══ RESUMEN ════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-resumen">
+  <div class="resumen-box">
+    <div class="section-header" style="margin-bottom:18px">
+      <div class="section-title">📝 Resumen ejecutivo autogenerado</div>
+      <button class="btn-secondary" id="btn-copy-resumen">📋 Copiar</button>
+    </div>
+    <div class="resumen-text" id="resumen-text" style="color:var(--text-muted)">Cargá un archivo para generar el resumen automático.</div>
+  </div>
+</div>
+
+<!-- ══ COMPARAR ════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-comp">
+  <div class="section-header"><div class="section-title">⚖ Comparación: semana actual vs. anterior</div></div>
+  <div id="comp-content"><div class="empty-state"><div class="icon">⚖</div><p>Cargá el archivo de la semana anterior en la pestaña Carga para activar la comparación.</p></div></div>
+</div>
+
+<!-- ══ USO DEL TABLERO ════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-log">
+  <div class="log-intro">
+    <div class="log-intro-icon">📋</div>
+    <div class="log-intro-text">
+      <h3>Registro de uso del tablero</h3>
+      <p>Cada vez que un líder analiza un archivo, queda registrado acá. Sirve para dar seguimiento a la adopción y asegurar que el tablero esté siendo usado por el equipo.</p>
+    </div>
+  </div>
+  <div class="log-stats">
+    <div class="log-stat"><div class="log-stat-val" id="ls-usos">—</div><div class="log-stat-lbl">Usos registrados</div></div>
+    <div class="log-stat"><div class="log-stat-val" id="ls-lideres">—</div><div class="log-stat-lbl">Líderes distintos</div></div>
+    <div class="log-stat"><div class="log-stat-val" id="ls-ultimo">—</div><div class="log-stat-lbl">Último uso</div></div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">Historial de usos</div>
+      <button class="btn-secondary" id="btn-refresh-log" style="font-size:12px;padding:6px 14px">↻ Actualizar</button>
+    </div>
+    <div class="table-scroll">
+      <table><thead><tr>
+        <th>#</th><th>Líder</th><th>Email</th><th>Fecha</th><th>Hora</th><th>Archivo cargado</th><th>Período analizado</th>
+      </tr></thead><tbody id="log-body"></tbody></table>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- MODAL CONTRASEÑA MANAGER -->
+<div class="pwd-modal-overlay" id="pwd-modal-overlay">
+  <div class="pwd-modal">
+    <div class="pwd-modal-icon">🔐</div>
+    <div class="pwd-modal-title">Zona de manager</div>
+    <div class="pwd-modal-sub">Ingresá la contraseña para acceder a la configuración de target y tolerancias.</div>
+    <input type="password" class="pwd-input" id="pwd-input" placeholder="••••••••••••"
+      onkeydown="if(event.key==='Enter')verificarPassword()"/>
+    <div class="pwd-error" id="pwd-error">Contraseña incorrecta. Intentá de nuevo.</div>
+    <div class="pwd-actions">
+      <button class="btn-secondary" onclick="cerrarPasswordModal()">Cancelar</button>
+      <button class="btn-primary" onclick="verificarPassword()">Ingresar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FICHA USUARIO -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-user-name">—</div>
+      <button class="modal-close" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+let allResults=[], prevResults=[], currentFile=null, prevFile=null;
+const COL_RUTA=13, COL_USUARIO=17, COL_FECHA=19;
+const EXCLUIDAS=['full','off','pickit'];
+
+// ── Configuraciones por país ──────────────────────────────────────
+const PAISES = {
+  MLA: { nombre:'Argentina', manIni:'06:00', manFin:'13:59', manBrkIni:'09:00', manBrkFin:'09:30', tarIni:'14:00', tarFin:'22:00', tarBrkIni:'17:00', tarBrkFin:'17:30' },
+  MLB: { nombre:'Brasil',    manIni:'06:00', manFin:'13:59', manBrkIni:'09:00', manBrkFin:'09:30', tarIni:'14:00', tarFin:'22:00', tarBrkIni:'17:00', tarBrkFin:'17:30' },
+  MLU: { nombre:'Uruguay',   manIni:'06:00', manFin:'13:59', manBrkIni:'09:00', manBrkFin:'09:30', tarIni:'14:00', tarFin:'22:00', tarBrkIni:'17:00', tarBrkFin:'17:30' },
+  MLC: { nombre:'Chile',     manIni:'06:00', manFin:'13:59', manBrkIni:'09:00', manBrkFin:'09:30', tarIni:'14:00', tarFin:'22:00', tarBrkIni:'17:00', tarBrkFin:'17:30' },
+};
+
+// Convierte "HH:MM" a minutos
+const timeToMin = t => { const [h,m]=t.split(':').map(Number); return h*60+m; };
+const toMin=(h,m)=>h*60+m;
+
+// Lee la config actual de los campos del panel
+function getConfig() {
+  const target = parseInt(document.getElementById('cfg-target')?.value)||6;
+  const tolIni = parseInt(document.getElementById('cfg-tolerancia-ini')?.value)||0;
+  const tolBrk = parseInt(document.getElementById('cfg-tolerancia-brk')?.value)||0;
+  const manIni  = timeToMin(document.getElementById('cfg-man-ini').value);
+  const manFin  = timeToMin(document.getElementById('cfg-man-fin').value);
+  const manBIni = timeToMin(document.getElementById('cfg-man-brk-ini').value);
+  const manBFin = timeToMin(document.getElementById('cfg-man-brk-fin').value);
+  const tarIni  = timeToMin(document.getElementById('cfg-tar-ini').value);
+  const tarFin  = timeToMin(document.getElementById('cfg-tar-fin').value);
+  const tarBIni = timeToMin(document.getElementById('cfg-tar-brk-ini').value);
+  const tarBFin = timeToMin(document.getElementById('cfg-tar-brk-fin').value);
+  return {
+    target, tolIni, tolBrk,
+    manIni, manFin, manBIni, manBFin,
+    tarIni, tarFin, tarBIni, tarBFin,
+    controles: [
+      { turno:'Mañana', tipo:'Inicio de turno', corteMin: manIni + tolIni,  contarDesde: manIni,  rango:{ini:manIni, fin:manFin} },
+      { turno:'Mañana', tipo:'Post Break',       corteMin: manBFin + tolBrk, contarDesde: manBFin, rango:{ini:manIni, fin:manFin} },
+      { turno:'Tarde',  tipo:'Inicio de turno',  corteMin: tarIni + tolIni,  contarDesde: tarIni,  rango:{ini:tarIni, fin:tarFin} },
+      { turno:'Tarde',  tipo:'Post Break',        corteMin: tarBFin + tolBrk, contarDesde: tarBFin, rango:{ini:tarIni, fin:tarFin} },
+    ]
+  };
+}
+
+function aplicarPais() {
+  const pais = document.getElementById('cfg-pais').value;
+  const p = PAISES[pais];
+  if(!p) return;
+  document.getElementById('cfg-man-ini').value     = p.manIni;
+  document.getElementById('cfg-man-fin').value     = p.manFin;
+  document.getElementById('cfg-man-brk-ini').value = p.manBrkIni;
+  document.getElementById('cfg-man-brk-fin').value = p.manBrkFin;
+  document.getElementById('cfg-tar-ini').value     = p.tarIni;
+  document.getElementById('cfg-tar-fin').value     = p.tarFin;
+  document.getElementById('cfg-tar-brk-ini').value = p.tarBrkIni;
+  document.getElementById('cfg-tar-brk-fin').value = p.tarBrkFin;
+  document.getElementById('cfg-target').value          = 6;
+  document.getElementById('cfg-tolerancia-ini').value  = 0;
+  document.getElementById('cfg-tolerancia-brk').value  = 0;
+  document.getElementById('config-pais-badge').textContent = `${pais} — ${p.nombre}`;
+  actualizarPreview();
+}
+
+function actualizarPreview() {
+  const cfg = getConfig();
+  const tIni = cfg.tolIni > 0 ? ` <strong>(+${cfg.tolIni} min)</strong>` : '';
+  const tBrk = cfg.tolBrk > 0 ? ` <strong>(+${cfg.tolBrk} min)</strong>` : '';
+  const t = cfg.target;
+  document.getElementById('config-preview').innerHTML =
+    `<span style="color:var(--mp-blue);font-weight:700">🎯 Target: ${t} bipeos acumulados antes de la hora de corte</span><br><br>` +
+    `☀ <strong>Mañana</strong> — Inicio: ${minToStr(cfg.manIni)} | Break: ${minToStr(cfg.manBIni)} – ${minToStr(cfg.manBFin)} | Fin: ${minToStr(cfg.manFin)}<br>` +
+    `&nbsp;&nbsp;&nbsp; → El rep debe tener <strong>${t} bipeos</strong> antes de las <strong>${minToStr(cfg.controles[0].corteMin)}</strong>${tIni} para quedar OK en inicio de turno<br>` +
+    `&nbsp;&nbsp;&nbsp; → El rep debe tener <strong>${t} bipeos</strong> antes de las <strong>${minToStr(cfg.controles[1].corteMin)}</strong>${tBrk} para quedar OK en post break<br><br>` +
+    `🌙 <strong>Tarde</strong> — Inicio: ${minToStr(cfg.tarIni)} | Break: ${minToStr(cfg.tarBIni)} – ${minToStr(cfg.tarBFin)} | Fin: ${minToStr(cfg.tarFin)}<br>` +
+    `&nbsp;&nbsp;&nbsp; → El rep debe tener <strong>${t} bipeos</strong> antes de las <strong>${minToStr(cfg.controles[2].corteMin)}</strong>${tIni} para quedar OK en inicio de turno<br>` +
+    `&nbsp;&nbsp;&nbsp; → El rep debe tener <strong>${t} bipeos</strong> antes de las <strong>${minToStr(cfg.controles[3].corteMin)}</strong>${tBrk} para quedar OK en post break`;
+}
+
+// ── Contraseña manager ────────────────────────────────────────────
+const MANAGER_PWD = 'Mercadito2026';
+let managerUnlocked = false;
+
+function abrirPasswordModal() {
+  document.getElementById('pwd-input').value = '';
+  document.getElementById('pwd-error').classList.remove('show');
+  document.getElementById('pwd-input').classList.remove('error');
+  document.getElementById('pwd-modal-overlay').classList.add('show');
+  setTimeout(()=>document.getElementById('pwd-input').focus(), 100);
+}
+
+function cerrarPasswordModal() {
+  document.getElementById('pwd-modal-overlay').classList.remove('show');
+}
+
+function verificarPassword() {
+  const val = document.getElementById('pwd-input').value;
+  if(val === MANAGER_PWD) {
+    managerUnlocked = true;
+    cerrarPasswordModal();
+    document.getElementById('manager-zone-locked').style.display = 'none';
+    document.getElementById('manager-zone-open').style.display = 'block';
+    document.getElementById('manager-unlocked-badge').classList.add('show');
+    actualizarPreview();
+  } else {
+    document.getElementById('pwd-error').classList.add('show');
+    const inp = document.getElementById('pwd-input');
+    inp.classList.add('error');
+    setTimeout(()=>inp.classList.remove('error'), 400);
+    inp.value = '';
+    inp.focus();
+  }
+}
+
+function bloquearManager() {
+  managerUnlocked = false;
+  document.getElementById('manager-zone-locked').style.display = 'block';
+  document.getElementById('manager-zone-open').style.display = 'none';
+  document.getElementById('manager-unlocked-badge').classList.remove('show');
+}
+
+function toggleConfig() {
+  const body = document.getElementById('config-body');
+  const label = document.getElementById('config-toggle-label');
+  const open = body.classList.toggle('open');
+  label.textContent = open ? '▲ Cerrar' : '▼ Ver configuración';
+}
+
+// ── inferTurno ahora usa la config dinámica ───────────────────────
+function inferTurno(m) {
+  const cfg = getConfig();
+  if(m >= cfg.manIni && m <= cfg.manFin) return 'Mañana';
+  if(m >= cfg.tarIni && m <= cfg.tarFin) return 'Tarde';
+  return null;
+}
+
+const minToStr=m=>`${String(Math.floor(m/60)).padStart(2,'0')}:${String(m%60).padStart(2,'0')}`;
+const fmtDate=d=>!d?'—':`${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+const fmtTime=d=>!d?'—':`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+// ── Detectar si estamos dentro de Apps Script ─────────────────────
+const enAppsScript = typeof google !== 'undefined' && google.script && google.script.run;
+
+function parseDate(val){
+  if(!val)return null;
+  const s=String(val).trim();
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if(m)return new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+(m[6]||0));
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5]);
+  return null;
+}
+
+function processCSV(text){
+  const lines = text.split(/\r?\n/);
+  if(lines.length < 2) throw new Error('El archivo parece estar vacío.');
+
+  const nRows = lines.length - 1;
+  setProgress(70, 'Procesando registros…', `${nRows.toLocaleString()} filas a analizar`);
+
+  const byUserDay = new Map();
+  const CHUNK = 3000;
+
+  for(let i = 1; i < lines.length; i++){
+    const line = lines[i];
+    if(!line.trim()) continue;
+
+    const cols = line.split(';');
+    const ruta    = (cols[COL_RUTA]    || '').replace(/^"|"$/g,'').trim();
+    const usuario = (cols[COL_USUARIO] || '').replace(/^"|"$/g,'').trim();
+    const fechaRaw = (cols[COL_FECHA]  || '').replace(/^"|"$/g,'').trim();
+
+    if(!usuario || !fechaRaw) continue;
+
+    const dt = parseDate(fechaRaw);
+    if(!dt) continue;
+
+    const minDia = toMin(dt.getHours(), dt.getMinutes());
+    if(!inferTurno(minDia)) continue;
+
+    const dateKey = fmtDate(dt);
+    const mapKey  = `${usuario}||${dateKey}`;
+
+    if(!byUserDay.has(mapKey)) byUserDay.set(mapKey, {usuario, fecha:dateKey, ruta, bipeos:[]});
+    const entry = byUserDay.get(mapKey);
+    entry.bipeos.push(dt);
+    if(ruta) entry.ruta = ruta;
+
+    if(i % CHUNK === 0){
+      const pct = 70 + Math.round((i / lines.length) * 22);
+      setProgress(pct, 'Procesando registros…', `${i.toLocaleString()} de ${nRows.toLocaleString()} filas`);
+    }
+  }
+
+  if(byUserDay.size === 0) throw new Error('No se encontraron datos en las columnas 14, 18 y 20. Verificá el archivo.');
+
+  setProgress(93, 'Calculando Fast Start…', 'Evaluando controles por usuario');
+
+  const results=[];
+  const cfg = getConfig();
+  byUserDay.forEach(({usuario,fecha,ruta,bipeos})=>{
+    bipeos.sort((a,b)=>a-b);
+    const isExcluido=EXCLUIDAS.includes(ruta.toLowerCase());
+    cfg.controles.forEach(ctrl=>{
+      const bdt=bipeos.filter(b=>{const m=toMin(b.getHours(),b.getMinutes());return m>=ctrl.rango.ini&&m<=ctrl.rango.fin});
+      if(bdt.length===0)return;
+      const corteMin=ctrl.corteMin;
+      // Primer bipeo dentro de la ventana del control
+      const bipeosEnVentana=bdt.filter(b=>{
+        const m=toMin(b.getHours(),b.getMinutes());
+        return m>=ctrl.contarDesde && m<=corteMin;
+      });
+      const primerBipeoVentana = bipeosEnVentana.length > 0 ? fmtTime(bipeosEnVentana[0]) : '—';
+      const acumulados = bipeosEnVentana.length;
+      let estado,detalle;
+      if(isExcluido){estado='Excluido';detalle=`RUTA OS: ${ruta}`}
+      else if(acumulados>=cfg.target){estado='OK';detalle=`${acumulados} bipeos acumulados`}
+      else{estado='Desvío';detalle=`No llegó al target`}
+      results.push({usuario,fecha,turno:ctrl.turno,tipo:ctrl.tipo,horaCorte:minToStr(corteMin),
+        acumulados,totalTurno:bdt.length,primerBipeo:primerBipeoVentana,ultimoBipeo:fmtTime(bdt[bdt.length-1]),
+        estado,detalle});
+    });
+  });
+  if(results.length===0)throw new Error('No se generaron resultados. Revisá el formato de fechas.');
+  return results;
+}
+
+function renderKPIs(data){
+  const a=data.filter(r=>r.estado!=='Excluido');
+  const ok=a.filter(r=>r.estado==='OK').length,dev=a.filter(r=>r.estado==='Desvío').length;
+  const exc=data.filter(r=>r.estado==='Excluido').length;
+  const pct=a.length>0?Math.round(ok/a.length*100):0;
+  document.getElementById('k-users').textContent=[...new Set(data.map(r=>r.usuario))].length;
+  document.getElementById('k-ok').textContent=ok;
+  document.getElementById('k-dev').textContent=dev;
+  document.getElementById('k-exc').textContent=exc;
+  document.getElementById('k-pct').textContent=pct+'%';
+  const ce=document.getElementById('card-exc'),kg=document.getElementById('kpi-grid');
+  if(exc===0){ce.style.display='none';kg.style.gridTemplateColumns='repeat(4,1fr)'}
+  else{ce.style.display='';kg.style.gridTemplateColumns='repeat(5,1fr)'}
+}
+
+function renderTable(data){
+  const turno=document.getElementById('f-turno').value,estado=document.getElementById('f-estado').value;
+  const control=document.getElementById('f-control').value,fecha=document.getElementById('f-fecha').value;
+  const usuario=document.getElementById('f-usuario').value;
+  let f=data;
+  if(turno)f=f.filter(r=>r.turno===turno);if(estado)f=f.filter(r=>r.estado===estado);
+  if(control)f=f.filter(r=>r.tipo===control);if(fecha)f=f.filter(r=>r.fecha===fecha);
+  if(usuario)f=f.filter(r=>r.usuario===usuario);
+  document.getElementById('row-count').textContent=`${f.length} registros`;
+  const tbody=document.getElementById('results-body');
+  if(f.length===0){tbody.innerHTML=`<tr><td colspan="9"><div class="empty-state"><div class="icon">🔍</div><p>Sin resultados para los filtros aplicados.</p></div></td></tr>`;return}
+  tbody.innerHTML=f.map(r=>{
+    const eb=r.estado==='OK'?`<span class="badge badge-ok">✓ OK</span>`:r.estado==='Desvío'?`<span class="badge badge-desvio">⚠ Desvío</span>`:`<span class="badge badge-excluido">— Excluido</span>`;
+    const tb=r.turno==='Mañana'?`<span class="badge badge-manana">☀ Mañana</span>`:`<span class="badge badge-tarde">🌙 Tarde</span>`;
+    const uEsc=r.usuario.replace(/'/g,"\\'");
+    return`<tr>
+      <td><strong style="cursor:pointer;color:var(--mp-blue)" onclick="openFicha('${uEsc}')">${r.usuario}</strong></td>
+      <td>${r.fecha}</td><td>${tb}</td><td>${r.tipo}</td>
+      <td style="font-family:var(--mono);font-weight:600">${r.horaCorte}</td>
+      <td style="text-align:center"><strong style="font-size:15px">${r.acumulados}</strong></td>
+      <td style="font-family:var(--mono);color:var(--ok);font-weight:600">${r.primerBipeo}</td>
+      <td>${eb}</td><td style="color:var(--text-muted);font-size:11px">${r.detalle}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRanking(data,turnoFiltro){
+  const f=turnoFiltro?data.filter(r=>r.turno===turnoFiltro):data;
+  const a=f.filter(r=>r.estado!=='Excluido');
+  const m=new Map();
+  a.forEach(r=>{if(!m.has(r.usuario))m.set(r.usuario,{ok:0,total:0});const u=m.get(r.usuario);u.total++;if(r.estado==='OK')u.ok++});
+  const ranking=[...m.entries()].map(([u,s])=>({u,pct:Math.round(s.ok/s.total*100),ok:s.ok,total:s.total,dev:s.total-s.ok})).sort((a,b)=>b.pct-a.pct);
+  const sinFeedback=ranking.filter(r=>r.pct===100);
+  const conFeedback=ranking.filter(r=>r.pct<100);
+  document.getElementById('pill-ok-count').textContent=`${sinFeedback.length} rep${sinFeedback.length!==1?'s':''}`;
+  document.getElementById('pill-dev-count').textContent=`${conFeedback.length} rep${conFeedback.length!==1?'s':''}`;
+  const cardHtml=(r,i)=>{
+    const cls=r.pct>=80?'verde':r.pct>=50?'amarillo':'rojo';
+    const col=r.pct>=80?'var(--ok)':r.pct>=50?'var(--warning)':'var(--desvio)';
+    const uEsc=r.u.replace(/'/g,"\\'");
+    return`<div class="rank-card ${cls}" onclick="openFicha('${uEsc}')">
+      <div class="rank-pos">#${i+1}</div>
+      <div class="rank-name">${r.u}</div>
+      <div class="rank-pct" style="color:${col}">${r.pct}%</div>
+      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${r.pct}%;background:${col}"></div></div>
+      <div class="rank-stats"><span>✓ ${r.ok}</span><span>⚠ ${r.dev}</span><span>de ${r.total}</span></div>
+    </div>`;
+  };
+  document.getElementById('ranking-grid-ok').innerHTML=sinFeedback.length?sinFeedback.map((r,i)=>cardHtml(r,i)).join(''):`<div class="empty-state" style="padding:20px"><p>Ningún rep llegó al 100% esta semana.</p></div>`;
+  document.getElementById('ranking-grid-dev').innerHTML=conFeedback.length?conFeedback.map((r,i)=>cardHtml(r,i)).join(''):`<div class="empty-state" style="padding:20px"><p>¡Todo el equipo llegó al 100%! 🎉</p></div>`;
+}
+
+function renderResumen(data,periodo){
+  const a=data.filter(r=>r.estado!=='Excluido');
+  const ok=a.filter(r=>r.estado==='OK').length,dev=a.filter(r=>r.estado==='Desvío').length;
+  const pct=a.length>0?Math.round(ok/a.length*100):0;
+  const usuarios=[...new Set(a.map(r=>r.usuario))];
+  const byCtrl={};
+  a.forEach(r=>{const k=`${r.tipo} — Turno ${r.turno}`;if(!byCtrl[k])byCtrl[k]={ok:0,dev:0};r.estado==='OK'?byCtrl[k].ok++:byCtrl[k].dev++});
+  const peorCtrl=Object.entries(byCtrl).sort((a,b)=>b[1].dev-a[1].dev)[0];
+  const byUser={};
+  a.forEach(r=>{if(!byUser[r.usuario])byUser[r.usuario]={ok:0,dev:0};r.estado==='OK'?byUser[r.usuario].ok++:byUser[r.usuario].dev++});
+  const rankDev=Object.entries(byUser).sort((a,b)=>b[1].dev-a[1].dev).slice(0,3);
+  const rankOk=Object.entries(byUser).map(([u,s])=>({u,pct:Math.round(s.ok/(s.ok+s.dev)*100)})).sort((a,b)=>b.pct-a.pct).slice(0,3);
+  const sem=pct>=80?'🟢':pct>=60?'🟡':'🔴';
+  document.getElementById('resumen-text').textContent=
+`📊 MERCADITO DASH — ${periodo}
+
+${sem} Cumplimiento Fast Start: ${pct}%
+👥 ${usuarios.length} usuarios · ${ok} OK · ${dev} desvío${dev!==1?'s':''}
+
+📌 Mayor incidencia: ${peorCtrl?peorCtrl[0]:' N/A'}
+
+⚠ Requieren feedback:
+${rankDev.map((e,i)=>`  ${i+1}. ${e[0]} — ${e[1].dev} desvío${e[1].dev!==1?'s':''}`).join('\n')}
+
+✅ Mejores de la semana:
+${rankOk.map((e,i)=>`  ${i+1}. ${e.u} — ${e.pct}%`).join('\n')}
+
+— Mercadito Dash · Mercado Pago`;
+}
+
+function renderComparacion(curr,prev){
+  const score=data=>{const m={};data.filter(r=>r.estado!=='Excluido').forEach(r=>{if(!m[r.usuario])m[r.usuario]={ok:0,total:0};m[r.usuario].total++;if(r.estado==='OK')m[r.usuario].ok++});const o={};Object.entries(m).forEach(([u,s])=>o[u]=Math.round(s.ok/s.total*100));return o};
+  const cs=score(curr),ps=score(prev);
+  const all=[...new Set([...Object.keys(cs),...Object.keys(ps)])].sort();
+  const rows=all.map(u=>({u,c:cs[u]??null,p:ps[u]??null,delta:(cs[u]!=null&&ps[u]!=null)?cs[u]-ps[u]:null}));
+  const mej=rows.filter(r=>r.delta!==null&&r.delta>0).length;
+  const emp=rows.filter(r=>r.delta!==null&&r.delta<0).length;
+  const neut=rows.filter(r=>r.delta===0).length;
+  const bc=p=>p>=80?'var(--ok)':p>=50?'var(--warning)':'var(--desvio)';
+  const dh=d=>{if(d===null)return`<span class="delta-neu">—</span>`;if(d>0)return`<span class="delta-pos">▲ ${d}pp</span>`;if(d<0)return`<span class="delta-neg">▼ ${Math.abs(d)}pp</span>`;return`<span class="delta-neu">= sin cambio</span>`};
+  const rh=rows.map(r=>`<div class="comp-row"><div class="comp-name" title="${r.u}">${r.u}</div>
+    <div class="comp-bars">
+      <span style="font-size:11px;color:var(--text-muted);width:28px;text-align:right">${r.p!==null?r.p+'%':'—'}</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:${r.p??0}%;background:${bc(r.p??0)}"></div></div>
+      <span style="font-size:11px;width:28px;text-align:right;font-weight:700">${r.c!==null?r.c+'%':'—'}</span>
+      <div class="mini-bar-wrap"><div class="mini-bar" style="width:${r.c??0}%;background:${bc(r.c??0)}"></div></div>
+      <div style="width:80px;text-align:right">${dh(r.delta)}</div>
+    </div></div>`).join('');
+  document.getElementById('comp-content').innerHTML=`
+    <div class="comp-kpis">
+      <div class="comp-kpi kpi-card ok"><div class="kpi-value">${mej}</div><div class="kpi-label">Mejoraron</div></div>
+      <div class="comp-kpi kpi-card desvio"><div class="kpi-value">${emp}</div><div class="kpi-label">Empeoraron</div></div>
+      <div class="comp-kpi kpi-card total"><div class="kpi-value">${neut}</div><div class="kpi-label">Sin cambio</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-header"><div class="table-title">Evolución por usuario</div>
+        <span style="font-size:11px;color:var(--text-muted);font-family:var(--font)">Ant. → Act. &nbsp; Δ diferencia en pp</span>
+      </div>
+      <div style="padding:14px 18px">${rh}</div>
+    </div>`;
+}
+
+function openFicha(usuario){
+  const data=allResults.filter(r=>r.usuario===usuario&&r.estado!=='Excluido');
+  if(data.length===0)return;
+  const ok=data.filter(r=>r.estado==='OK').length,dev=data.filter(r=>r.estado==='Desvío').length;
+  const total=data.length,pct=Math.round(ok/total*100);
+  const pc=pct>=80?'var(--ok)':pct>=50?'var(--warning)':'var(--desvio)';
+  const fechas=[...new Set(data.map(r=>r.fecha))].sort();
+  const diasHtml=fechas.map(f=>{
+    const c=data.filter(r=>r.fecha===f);
+    const chips=c.map(r=>{const cls=r.estado==='OK'?'ctrl-ok':'ctrl-dev';const ic=r.estado==='OK'?'✓':'⚠';return`<span class="ctrl-chip ${cls}">${ic} ${r.tipo.replace('Inicio de turno','Inicio')} ${r.turno.substring(0,3)}</span>`}).join('');
+    return`<div class="dia-row"><div class="dia-label">${f}</div><div class="dia-controles">${chips}</div></div>`;
+  }).join('');
+  const byCtrl={};
+  data.forEach(r=>{const k=`${r.tipo} ${r.turno}`;if(!byCtrl[k])byCtrl[k]={ok:0,dev:0};r.estado==='OK'?byCtrl[k].ok++:byCtrl[k].dev++});
+  const ctrlHtml=Object.entries(byCtrl).map(([k,v])=>{const p=Math.round(v.ok/(v.ok+v.dev)*100);const col=p>=80?'var(--ok)':p>=50?'var(--warning)':'var(--desvio)';return`<div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--bg);font-family:var(--font)"><span>${k}</span><span style="font-weight:700;color:${col}">${p}%</span></div>`}).join('');
+  const textoFicha=`MERCADITO DASH — ${usuario}\nCumplimiento Fast Start: ${pct}% (${ok} OK de ${total} controles)\n\nPor día:\n${fechas.map(f=>{const c=data.filter(r=>r.fecha===f);return`  ${f}: ${c.map(r=>`${r.tipo} ${r.turno} → ${r.estado}`).join(' | ')}`}).join('\n')}`;
+  document.getElementById('modal-user-name').textContent=usuario;
+  document.getElementById('modal-body').innerHTML=`
+    <div class="ficha-kpis">
+      <div class="ficha-kpi"><div class="val" style="color:${pc}">${pct}%</div><div class="lbl">Cumplimiento</div></div>
+      <div class="ficha-kpi"><div class="val" style="color:var(--ok)">${ok}</div><div class="lbl">OK</div></div>
+      <div class="ficha-kpi"><div class="val" style="color:var(--desvio)">${dev}</div><div class="lbl">Desvíos</div></div>
+      <div class="ficha-kpi"><div class="val">${total}</div><div class="lbl">Controles</div></div>
+    </div>
+    <div class="ficha-section-title">Cumplimiento por control</div>${ctrlHtml}
+    <div class="ficha-section-title">Detalle por día</div>${diasHtml}
+    <button class="btn-secondary copy-btn" id="copy-ficha-btn">📋 Copiar ficha para feedback</button>`;
+  document.getElementById('modal-overlay').classList.add('show');
+  document.getElementById('copy-ficha-btn').onclick=()=>{
+    navigator.clipboard.writeText(textoFicha).then(()=>{document.getElementById('copy-ficha-btn').textContent='✓ Copiado!';setTimeout(()=>document.getElementById('copy-ficha-btn').textContent='📋 Copiar ficha para feedback',2000)}).catch(()=>{});
+  };
+}
+
+
+// ── LOG — robusto con y sin Apps Script ───────────────────────────
+function saveLog(entrada){
+  if(!enAppsScript)return; // sin Apps Script, no hace nada (no rompe)
+  google.script.run
+    .withSuccessHandler(res=>{
+      if(res&&res.email){const hm=document.getElementById('header-meta');if(!hm.innerHTML.includes('@'))hm.innerHTML+=` &nbsp;|&nbsp; <span style="color:#8a99ab">${res.email}</span>`}
+      renderLog();
+    })
+    .withFailureHandler(()=>{}) // silencioso
+    .guardarLog(entrada);
+}
+
+function renderLog(){
+  const tbody=document.getElementById('log-body');
+  if(!enAppsScript){
+    tbody.innerHTML=`<tr><td colspan="7" style="color:var(--text-muted);padding:16px;text-align:center;font-family:var(--font)">
+      El log centralizado está disponible solo cuando el tablero está publicado en Google Apps Script.<br>
+      <span style="font-size:11px;opacity:.7">Seguí los pasos de instalación para activarlo.</span>
+    </td></tr>`;
+    document.getElementById('ls-usos').textContent='—';
+    document.getElementById('ls-lideres').textContent='—';
+    document.getElementById('ls-ultimo').textContent='—';
+    return;
+  }
+  tbody.innerHTML=`<tr><td colspan="7" style="color:var(--text-muted);padding:12px;font-family:var(--font)">Cargando registros…</td></tr>`;
+  google.script.run
+    .withSuccessHandler(logs=>{
+      if(!logs||logs.length===0){
+        tbody.innerHTML=`<tr><td colspan="7" style="color:var(--text-muted);padding:12px;font-family:var(--font)">Sin registros aún.</td></tr>`;
+        document.getElementById('ls-usos').textContent='0';
+        document.getElementById('ls-lideres').textContent='0';
+        document.getElementById('ls-ultimo').textContent='—';
+        return;
+      }
+      const lideres=new Set(logs.map(e=>e.email||e.lider));
+      document.getElementById('ls-usos').textContent=logs.length;
+      document.getElementById('ls-lideres').textContent=lideres.size;
+      document.getElementById('ls-ultimo').textContent=`${logs[0].fecha} ${logs[0].hora}`;
+      tbody.innerHTML=logs.map((e,i)=>`<tr>
+        <td style="color:var(--text-muted)">${i+1}</td>
+        <td><strong>${e.lider}</strong></td>
+        <td style="color:var(--text-muted)">${e.email||'—'}</td>
+        <td>${e.fecha}</td>
+        <td style="font-family:var(--mono)">${e.hora}</td>
+        <td style="color:var(--text-muted);font-size:11px">${e.archivo}</td>
+        <td>${e.periodo}</td>
+      </tr>`).join('');
+    })
+    .withFailureHandler(()=>{
+      tbody.innerHTML=`<tr><td colspan="7" style="color:var(--text-muted);padding:12px;font-family:var(--font)">No se pudieron cargar los registros.</td></tr>`;
+    })
+    .obtenerLogs();
+}
+
+// ── Render general ─────────────────────────────────────────────────
+function renderAll(data,periodo){
+  const usuarios=[...new Set(data.map(r=>r.usuario))];
+  const fechas=[...new Set(data.map(r=>r.fecha))].sort();
+  const fF=document.getElementById('f-fecha'),fU=document.getElementById('f-usuario');
+  fF.innerHTML='<option value="">Todas</option>';fU.innerHTML='<option value="">Todos</option>';
+  fechas.forEach(f=>fF.innerHTML+=`<option value="${f}">${f}</option>`);
+  usuarios.sort().forEach(u=>fU.innerHTML+=`<option value="${u}">${u}</option>`);
+  renderKPIs(data);renderTable(data);renderRanking(data,'');renderResumen(data,periodo);
+  if(prevResults.length>0)renderComparacion(data,prevResults);
+  switchTab('tab-faststart');
+}
+
+function switchTab(id){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`[data-tab="${id}"]`).classList.add('active');
+}
+
+function exportCSV(data){
+  const headers=['Usuario','Fecha','Turno','Control','Hora corte','Bipeos acumulados','Primer bip','Estado','Detalle'];
+  const rows=data.map(r=>[r.usuario,r.fecha,r.turno,r.tipo,r.horaCorte,r.acumulados,r.primerBipeo,r.estado,r.detalle]);
+  const csv=[headers,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`mercadito_dash_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+function showAlert(t,m){clearAlerts();const el=document.getElementById(`alert-${t}`);el.innerHTML=m;el.classList.add('show')}
+function clearAlerts(){['info','error','success'].forEach(t=>{const el=document.getElementById(`alert-${t}`);el.classList.remove('show');el.innerHTML=''})}
+// ── Límite de tamaño ──────────────────────────────────────────────
+const MAX_MB = 80;
+
+function setProgress(pct, texto, sub='') {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('loader-text').textContent = texto;
+  document.getElementById('loader-sub').textContent = sub;
+}
+
+// ── Leer CSV separado por ; ────────────────────────────────────────
+function readCSV(file) {
+  return new Promise((resolve, reject) => {
+    const mb = file.size / 1024 / 1024;
+    if (mb > MAX_MB) {
+      reject(new Error(`El archivo pesa ${mb.toFixed(1)} MB. El máximo soportado es ${MAX_MB} MB. Exportá un rango de fechas más acotado desde Invas.`));
+      return;
+    }
+    setProgress(10, `Leyendo archivo… (${mb.toFixed(1)} MB)`, 'Cargando datos a memoria');
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        setProgress(60, 'Parseando CSV…', 'Leyendo columnas necesarias');
+        resolve(e.target.result);
+      } catch(err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+function setupDrop(zoneId,inputId,textId,onFile){
+  const zone=document.getElementById(zoneId),input=document.getElementById(inputId);
+  input.addEventListener('change',()=>{if(input.files[0]){onFile(input.files[0]);document.getElementById(textId).innerHTML=`<strong>✓ ${input.files[0].name}</strong><br>${(input.files[0].size/1024).toFixed(1)} KB`}});
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag')});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');if(e.dataTransfer.files[0]){input.files=e.dataTransfer.files;input.dispatchEvent(new Event('change'))}});
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  aplicarPais(); // cargar MLA por defecto
+  renderLog(); // carga el log al abrir
+  document.querySelectorAll('.nav-tab').forEach(btn=>btn.addEventListener('click',()=>{
+    switchTab(btn.dataset.tab);
+    if(btn.dataset.tab==='tab-log')renderLog(); // refresca al entrar a la pestaña
+  }));
+  document.getElementById('modal-close').addEventListener('click',()=>document.getElementById('modal-overlay').classList.remove('show'));
+  document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('show')});
+  document.getElementById('btn-refresh-log').addEventListener('click',renderLog);
+
+  setupDrop('drop-zone','file-input','upload-text-main',f=>{
+    currentFile=f;
+    const mb=(f.size/1024/1024).toFixed(1);
+    const warn = f.size/1024/1024 > 50 ? ` ⚠ Archivo grande (${mb} MB) — puede tardar` : ` (${mb} MB)`;
+    document.getElementById('btn-process').disabled=false;
+    showAlert('info',`Archivo listo: <strong>${f.name}</strong>${warn}. Completá tu nombre y hacé clic en Analizar.`);
+  });
+  setupDrop('drop-zone-prev','file-input-prev','upload-text-prev',f=>{prevFile=f});
+
+  document.getElementById('btn-process').addEventListener('click',()=>{
+    const leader=document.getElementById('leader-name').value.trim();
+    if(!leader){showAlert('error','Por favor ingresá tu nombre antes de analizar.');return}
+    if(!currentFile){showAlert('error','Seleccioná un archivo primero.');return}
+    clearAlerts();
+    setProgress(0,'Iniciando…','');
+    document.getElementById('loader').classList.add('show');
+    document.getElementById('btn-process').disabled=true;
+    Promise.all([readCSV(currentFile),prevFile?readCSV(prevFile):Promise.resolve(null)])
+      .then(([csvMain,csvPrev])=>{
+        const results=processCSV(csvMain);
+        allResults=results;
+        if(csvPrev){try{prevResults=processCSV(csvPrev)}catch(e){prevResults=[]}}
+        const fechas=[...new Set(results.map(r=>r.fecha))].sort();
+        const periodo=fechas.length>1?`${fechas[0]} – ${fechas[fechas.length-1]}`:fechas[0];
+        const now=new Date();
+        saveLog({lider:leader,fecha:fmtDate(now),hora:fmtTime(now),archivo:currentFile.name,periodo});
+        setProgress(100,'¡Listo!','');
+        document.getElementById('header-meta').innerHTML=`${leader} &nbsp;|&nbsp; ${fmtDate(now)} ${fmtTime(now)}`;
+        renderAll(results,periodo);
+        document.getElementById('loader').classList.remove('show');
+        document.getElementById('btn-process').disabled=false;
+        showAlert('success',`✓ Análisis completado — período ${periodo}.`);
+      })
+      .catch(err=>{document.getElementById('loader').classList.remove('show');document.getElementById('btn-process').disabled=false;showAlert('error',`Error: ${err.message}`)});
+  });
+
+  ['f-turno','f-estado','f-control','f-fecha','f-usuario'].forEach(id=>document.getElementById(id).addEventListener('change',()=>renderTable(allResults)));
+  document.getElementById('btn-clear-filters').addEventListener('click',()=>{['f-turno','f-estado','f-control','f-fecha','f-usuario'].forEach(id=>document.getElementById(id).value='');renderTable(allResults)});
+  document.getElementById('btn-export').addEventListener('click',()=>exportCSV(allResults));
+  document.getElementById('rank-turno').addEventListener('change',e=>renderRanking(allResults,e.target.value));
+  document.getElementById('btn-copy-resumen').addEventListener('click',()=>{
+    const txt=document.getElementById('resumen-text').textContent;
+    navigator.clipboard.writeText(txt).then(()=>{document.getElementById('btn-copy-resumen').textContent='✓ Copiado!';setTimeout(()=>document.getElementById('btn-copy-resumen').textContent='📋 Copiar',2000)}).catch(()=>{});
+  });
+});
+</script>
+</body>
+</html>
