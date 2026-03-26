@@ -677,9 +677,44 @@ function parseDate(val){
   return null;
 }
 
+function splitCSVLine(line){
+  // Maneja campos con comillas y punto y coma como separador
+  const cols=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(c==='"'){inQ=!inQ}
+    else if(c===';'&&!inQ){cols.push(cur.trim());cur=''}
+    else{cur+=c}
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+
 function processCSV(text){
-  const lines = text.split(/\r?\n/);
+  const lines = text.split(/\r?\n/).filter(l=>l.trim());
   if(lines.length < 2) throw new Error('El archivo parece estar vacío.');
+
+  // ── Detectar columnas por header ──────────────────────────────
+  const headers = splitCSVLine(lines[0]).map(h=>h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''));
+
+  const findCol = (...keywords) => {
+    for(const kw of keywords){
+      const i = headers.findIndex(h=>h.includes(kw));
+      if(i>=0) return i;
+    }
+    return -1;
+  };
+
+  const iUsuario = findCol('operador','usuario','user','operator','login','rep ');
+  const iFecha   = findCol('fecha hora','fecha_hora','datetime','timestamp','fecha','date','hora');
+  const iRuta    = findCol('ruta','route','os ','orden de salida','os_numero','ordendesalida');
+
+  if(iUsuario<0 || iFecha<0){
+    throw new Error(
+      `No se encontraron las columnas de usuario/fecha.\n` +
+      `Headers detectados: ${headers.slice(0,25).join(' | ')}`
+    );
+  }
 
   const nRows = lines.length - 1;
   setProgress(70, 'Procesando registros…', `${nRows.toLocaleString()} filas a analizar`);
@@ -691,10 +726,10 @@ function processCSV(text){
     const line = lines[i];
     if(!line.trim()) continue;
 
-    const cols = line.split(';');
-    const ruta    = (cols[COL_RUTA]    || '').replace(/^"|"$/g,'').trim();
-    const usuario = (cols[COL_USUARIO] || '').replace(/^"|"$/g,'').trim();
-    const fechaRaw = (cols[COL_FECHA]  || '').replace(/^"|"$/g,'').trim();
+    const cols = splitCSVLine(line);
+    const ruta    = iRuta>=0 ? (cols[iRuta]    || '') : '';
+    const usuario = (cols[iUsuario] || '').trim();
+    const fechaRaw = (cols[iFecha]  || '').trim();
 
     if(!usuario || !fechaRaw) continue;
 
@@ -718,7 +753,11 @@ function processCSV(text){
     }
   }
 
-  if(byUserDay.size === 0) throw new Error('No se encontraron datos en las columnas 14, 18 y 20. Verificá el archivo.');
+  if(byUserDay.size === 0) throw new Error(
+    `No se encontraron registros dentro del horario de turnos.\n` +
+    `Columnas usadas → Usuario: "${headers[iUsuario]}" (col ${iUsuario+1}), ` +
+    `Fecha: "${headers[iFecha]}" (col ${iFecha+1})${iRuta>=0?`, Ruta: "${headers[iRuta]}" (col ${iRuta+1})`:''}.`
+  );
 
   setProgress(93, 'Calculando Fast Start…', 'Evaluando controles por usuario');
 
