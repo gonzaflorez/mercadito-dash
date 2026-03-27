@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Productividades y SLA — Argentina</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#1a1d3a; font-family:'Segoe UI',system-ui,sans-serif; padding:24px; }
+
+  .page { width:100%; max-width:920px; margin:0 auto; display:flex; flex-direction:column; gap:20px; }
+
+  .card { background:#23274a; border:1px solid #373b6e; border-radius:16px; padding:24px 28px; }
+
+  .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .card-title { font-size:15px; font-weight:700; color:#f0f2ff; }
+  .card-sub { font-size:12px; color:#9ba3cc; margin-top:3px; }
+
+  .badge { font-size:11px; font-weight:700; padding:4px 12px; border-radius:20px; white-space:nowrap; }
+  .badge-yellow { background:rgba(255,230,0,0.12); border:1px solid rgba(255,230,0,0.35); color:#ffe600; }
+  .badge-red    { background:rgba(255,71,87,0.12);  border:1px solid rgba(255,71,87,0.35);  color:#ff4757; }
+
+  .chart-area { position:relative; height:300px; margin:8px 0 16px; }
+  .chart-area-sm { position:relative; height:220px; margin:8px 0 16px; }
+
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .kpi { background:#1a1d3a; border:1px solid #373b6e; border-radius:8px; padding:10px 12px; text-align:center; }
+  .kpi-q   { font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:#9ba3cc; margin-bottom:5px; }
+  .kpi-val { font-size:17px; font-weight:700; margin-bottom:2px; }
+  .kpi-lbl { font-size:10px; color:#9ba3cc; }
+  .kpi-delta { font-size:11px; font-weight:700; margin-top:4px; }
+
+  .kpis-sla { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:4px; }
+  .kpi-sla { background:#1a1d3a; border:1px solid #373b6e; border-radius:8px; padding:10px 12px; }
+  .kpi-sla-q { font-size:10px; text-transform:uppercase; letter-spacing:0.8px; color:#9ba3cc; margin-bottom:6px; }
+  .sla-bar-wrap { height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; margin:6px 0 4px; display:flex; }
+  .sla-ok  { background:#3483fa; height:100%; border-radius:4px 0 0 4px; }
+  .sla-del { background:#ff4757; height:100%; border-radius:0 4px 4px 0; }
+  .sla-nums { display:flex; justify-content:space-between; font-size:11px; }
+
+  .divider { height:1px; background:#373b6e; margin:16px 0; }
+
+  .note { padding:10px 14px; background:rgba(255,230,0,0.05); border-left:3px solid #ffe600; border-radius:6px; font-size:11px; color:#9ba3cc; line-height:1.6; margin-top:12px; }
+  .note strong { color:#ffe600; }
+  .note-red { padding:10px 14px; background:rgba(255,71,87,0.05); border-left:3px solid #ff4757; border-radius:6px; font-size:11px; color:#9ba3cc; line-height:1.6; margin-top:12px; }
+  .note-red strong { color:#ff4757; }
+
+  .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#9ba3cc; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .section-label::after { content:''; flex:1; height:1px; background:#373b6e; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ===== CARD 1: PRODUCTIVIDAD ===== -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">Productividad mensual — Argentina 2025</div>
+        <div class="card-sub">Efectividad · Neta · Sistémica + volumen de tickets por mes</div>
+      </div>
+      <span class="badge badge-yellow">▼ Post Order: ago 2025</span>
+    </div>
+
+    <div class="chart-area">
+      <canvas id="chartProd"></canvas>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi" style="border-top:3px solid #3483fa">
+        <div class="kpi-q">Q1 2025</div>
+        <div class="kpi-val" style="color:#3483fa">91</div>
+        <div class="kpi-lbl">tickets</div>
+        <div class="kpi-val" style="color:#3483fa;font-size:13px;margin-top:4px">108.6</div>
+        <div class="kpi-lbl">prod. neta</div>
+        <div class="kpi-delta" style="color:#9ba3cc">base</div>
+      </div>
+      <div class="kpi" style="border-top:3px solid #3483fa">
+        <div class="kpi-q">Q2 2025</div>
+        <div class="kpi-val" style="color:#3483fa">101</div>
+        <div class="kpi-lbl">tickets</div>
+        <div class="kpi-val" style="color:#3483fa;font-size:13px;margin-top:4px">114.6</div>
+        <div class="kpi-lbl">prod. neta</div>
+        <div class="kpi-delta" style="color:#2ed573">↑ pico prod.</div>
+      </div>
+      <div class="kpi" style="border-top:3px solid #ffa502">
+        <div class="kpi-q">Q3 2025</div>
+        <div class="kpi-val" style="color:#ffa502">83</div>
+        <div class="kpi-lbl">tickets</div>
+        <div class="kpi-val" style="color:#ffa502;font-size:13px;margin-top:4px">109.7</div>
+        <div class="kpi-lbl">prod. neta</div>
+        <div class="kpi-delta" style="color:#ffa502">inicio impl.</div>
+      </div>
+      <div class="kpi" style="border-top:3px solid #ff4757">
+        <div class="kpi-q">Q4 2025</div>
+        <div class="kpi-val" style="color:#ff4757">154</div>
+        <div class="kpi-lbl">tickets ⚠️</div>
+        <div class="kpi-val" style="color:#ff4757;font-size:13px;margin-top:4px">102.8</div>
+        <div class="kpi-lbl">prod. neta</div>
+        <div class="kpi-delta" style="color:#ff4757">-10.3% vs base</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <strong>Julio 2025</strong> fue el pico de productividad del año (Prod. Neta 126.2 · Sistémica 170.6). A partir de <strong>agosto</strong> (inicio Post Order) la caída es sostenida — Q4 registra simultáneamente el <strong>mínimo de productividad</strong> y el <strong>máximo de tickets (+60%)</strong>.
+    </div>
+  </div>
+
+  <!-- ===== CARD 2: SLA ===== -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">% SLA Backlog — Argentina por Quarter</div>
+        <div class="card-sub">On Time vs Delayed · Correlación con implementación Post Order</div>
+      </div>
+      <span class="badge badge-red">⚠️ Caída Q4: -5.6pp</span>
+    </div>
+
+    <div class="section-label">Detalle por quarter</div>
+
+    <div class="kpis-sla">
+      <!-- Q2 -->
+      <div class="kpi-sla" style="border-top:3px solid #3483fa">
+        <div class="kpi-sla-q">Q2 2025 · base</div>
+        <div style="font-size:22px;font-weight:700;color:#3483fa">99.33%</div>
+        <div class="sla-bar-wrap"><div class="sla-ok" style="width:99.33%"></div><div class="sla-del" style="width:0.67%"></div></div>
+        <div class="sla-nums">
+          <span style="color:#3483fa">On Time: 99.33%</span>
+          <span style="color:#ff4757">Delayed: 0.67%</span>
+        </div>
+      </div>
+      <!-- Q3 -->
+      <div class="kpi-sla" style="border-top:3px solid #3483fa">
+        <div class="kpi-sla-q">Q3 2025 · inicio impl.</div>
+        <div style="font-size:22px;font-weight:700;color:#3483fa">99.58%</div>
+        <div class="sla-bar-wrap"><div class="sla-ok" style="width:99.58%"></div><div class="sla-del" style="width:0.42%"></div></div>
+        <div class="sla-nums">
+          <span style="color:#3483fa">On Time: 99.58%</span>
+          <span style="color:#ff4757">Delayed: 0.42%</span>
+        </div>
+      </div>
+      <!-- Q4 -->
+      <div class="kpi-sla" style="border-top:3px solid #ff4757">
+        <div class="kpi-sla-q">Q4 2025 · post-impl ⚠️</div>
+        <div style="font-size:22px;font-weight:700;color:#ff4757">93.96%</div>
+        <div class="sla-bar-wrap"><div class="sla-ok" style="width:93.96%"></div><div class="sla-del" style="width:6.04%"></div></div>
+        <div class="sla-nums">
+          <span style="color:#3483fa">On Time: 93.96%</span>
+          <span style="color:#ff4757">Delayed: 6.04%</span>
+        </div>
+      </div>
+      <!-- Q1 2026 -->
+      <div class="kpi-sla" style="border-top:3px solid #ffa502">
+        <div class="kpi-sla-q">Q1 2026 · en curso</div>
+        <div style="font-size:22px;font-weight:700;color:#ffa502">94.94%</div>
+        <div class="sla-bar-wrap"><div class="sla-ok" style="width:94.94%"></div><div class="sla-del" style="width:5.06%"></div></div>
+        <div class="sla-nums">
+          <span style="color:#3483fa">On Time: 94.94%</span>
+          <span style="color:#ff4757">Delayed: 5.06%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-area-sm">
+      <canvas id="chartSLA"></canvas>
+    </div>
+
+    <div class="note-red">
+      El SLA se mantuvo estable en <strong>~99.5%</strong> durante Q2 y Q3. En <strong>Q4 2025</strong> — primer quarter completo post-implementación — cae a <strong>93.96%</strong>, una pérdida de <strong>5.6 puntos porcentuales</strong>. El backlog de retiros con SLA vencido se multiplicó por <strong>9x</strong> (0.67% → 6.04%). Q1 2026 no muestra recuperación.
+    </div>
+  </div>
+
+  <!-- ===== CARD 3: RESUMEN CRUZADO ===== -->
+  <div class="card">
+    <div class="section-label">Correlación cruzada — Post Order impact</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      <div style="background:#1a1d3a;border:1px solid #373b6e;border-radius:8px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#9ba3cc;margin-bottom:8px">Tickets Q4 vs base</div>
+        <div style="font-size:28px;font-weight:700;color:#ff4757">+60%</div>
+        <div style="font-size:12px;color:#9ba3cc;margin-top:2px">154 vs 96 promedio Q1+Q2</div>
+      </div>
+      <div style="background:#1a1d3a;border:1px solid #373b6e;border-radius:8px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#9ba3cc;margin-bottom:8px">Prod. Neta Q4 vs base</div>
+        <div style="font-size:28px;font-weight:700;color:#ff4757">-10.3%</div>
+        <div style="font-size:12px;color:#9ba3cc;margin-top:2px">102.8 vs 114.6 prom. Q1+Q2</div>
+      </div>
+      <div style="background:#1a1d3a;border:1px solid #373b6e;border-radius:8px;padding:14px 16px">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:#9ba3cc;margin-bottom:8px">SLA delayed Q4 vs base</div>
+        <div style="font-size:28px;font-weight:700;color:#ff4757">×9</div>
+        <div style="font-size:12px;color:#9ba3cc;margin-top:2px">6.04% vs 0.67% en Q2</div>
+      </div>
+    </div>
+    <div style="margin-top:12px;padding:12px 16px;background:rgba(255,230,0,0.05);border:1px solid rgba(255,230,0,0.2);border-radius:8px;font-size:12px;color:#9ba3cc;line-height:1.7">
+      Los tres indicadores empeoran simultáneamente a partir de <strong style="color:#ffe600">agosto 2025</strong>. La implementación Post Order correlaciona directamente con la caída de productividad, el aumento de tickets y el deterioro del SLA en Argentina.
+    </div>
+  </div>
+
+</div><!-- end page -->
+
+<script>
+Chart.register(window['chartjs-plugin-annotation']);
+
+const TT = {
+  backgroundColor:'#1a1d3a', borderColor:'#373b6e', borderWidth:1,
+  titleColor:'#ffe600', bodyColor:'#f0f2ff', padding:12
+};
+
+// ===== CHART 1: PRODUCTIVIDAD MENSUAL =====
+const meses     = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const prodEfect = [165.4,180.3,191.4,184.2,209.3,201.4,214.9,188.5,176,176,174,178.3];
+const prodNeta  = [124.5,101.8,99.4,103.9,124.6,115.3,126.2,105.7,97.1,102.2,103.6,102.5];
+const prodSist  = [149.5,141.2,142.8,137.6,160,157.5,170.6,150.3,135.3,134,120.6,123.3];
+const tickets   = [30,30,31,34,34,33,28,28,27,51,52,51];
+
+new Chart(document.getElementById('chartProd'), {
+  data:{
+    labels: meses,
+    datasets:[
+      { type:'bar', label:'Tickets (aprox.)', data:tickets,
+        backgroundColor: meses.map((_,i)=> i<6?'rgba(52,131,250,0.25)': i<9?'rgba(255,165,2,0.35)':'rgba(255,71,87,0.4)'),
+        borderColor:     meses.map((_,i)=> i<6?'#3483fa': i<9?'#ffa502':'#ff4757'),
+        borderWidth:1.5, borderRadius:4, yAxisID:'yT', order:3 },
+      { type:'line', label:'Prod. Efectividad', data:prodEfect,
+        borderColor:'#c8d400', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#c8d400',
+        tension:0.4, yAxisID:'yP', order:0, backgroundColor:'transparent' },
+      { type:'line', label:'Prod. Neta', data:prodNeta,
+        borderColor:'#3483fa', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#3483fa',
+        tension:0.4, yAxisID:'yP', order:1, backgroundColor:'transparent' },
+      { type:'line', label:'Prod. Sistémica', data:prodSist,
+        borderColor:'#9ba3cc', borderWidth:2, borderDash:[5,3], pointRadius:3, pointBackgroundColor:'#9ba3cc',
+        tension:0.4, yAxisID:'yP', order:2, backgroundColor:'transparent' },
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:true, labels:{ color:'#9ba3cc', font:{size:11}, boxWidth:14, padding:12 }},
+      tooltip: TT,
+      annotation:{ annotations:{
+        impl:{ type:'line', xMin:6.5, xMax:6.5, borderColor:'#ffe600', borderWidth:2, borderDash:[6,4],
+          label:{ display:true, content:'▼ Post Order', position:'start',
+            backgroundColor:'rgba(255,230,0,0.15)', color:'#ffe600', font:{size:10,weight:'bold'},
+            padding:{x:6,y:3}, borderRadius:4 }},
+        q1b:{ type:'box', xMin:-0.5, xMax:2.5, backgroundColor:'rgba(52,131,250,0.04)', borderWidth:0 },
+        q2b:{ type:'box', xMin:2.5,  xMax:5.5, backgroundColor:'rgba(52,131,250,0.07)', borderWidth:0 },
+        q3b:{ type:'box', xMin:5.5,  xMax:8.5, backgroundColor:'rgba(255,165,2,0.05)',  borderWidth:0 },
+        q4b:{ type:'box', xMin:8.5,  xMax:11.5,backgroundColor:'rgba(255,71,87,0.07)', borderWidth:0 },
+        q1l:{ type:'label', xValue:1,  yValue:228, content:'Q1', color:'rgba(52,131,250,0.5)', font:{size:10,weight:'bold'} },
+        q2l:{ type:'label', xValue:4,  yValue:228, content:'Q2', color:'rgba(52,131,250,0.5)', font:{size:10,weight:'bold'} },
+        q3l:{ type:'label', xValue:7,  yValue:228, content:'Q3', color:'rgba(255,165,2,0.6)',  font:{size:10,weight:'bold'} },
+        q4l:{ type:'label', xValue:10, yValue:228, content:'Q4', color:'rgba(255,71,87,0.6)',  font:{size:10,weight:'bold'} },
+      }}
+    },
+    scales:{
+      x:{ grid:{color:'#2d3277'}, ticks:{color:'#9ba3cc',font:{size:11}} },
+      yP:{ type:'linear', position:'left', min:60, max:240, grid:{color:'#2d3277'},
+           ticks:{color:'#9ba3cc',font:{size:11}}, title:{display:true,text:'Productividad',color:'#9ba3cc',font:{size:11}} },
+      yT:{ type:'linear', position:'right', min:0, max:90, grid:{drawOnChartArea:false},
+           ticks:{color:'rgba(255,71,87,0.7)',font:{size:11}}, title:{display:true,text:'Tickets/mes',color:'rgba(255,71,87,0.7)',font:{size:11}} }
+    }
+  }
+});
+
+// ===== CHART 2: SLA =====
+const slaQ      = ['Q2 2025','Q3 2025','Q4 2025','Q1 2026'];
+const slaOnTime = [99.33, 99.58, 93.96, 94.94];
+const slaDelay  = [0.67,   0.42,  6.04,  5.06];
+const slaPct    = [99.33, 99.58, 93.96, 94.94];
+
+new Chart(document.getElementById('chartSLA'), {
+  data:{
+    labels: slaQ,
+    datasets:[
+      { type:'bar', label:'SLA On Time', data:slaOnTime,
+        backgroundColor:['rgba(52,131,250,0.35)','rgba(52,131,250,0.35)','rgba(255,71,87,0.35)','rgba(255,165,2,0.35)'],
+        borderColor:['#3483fa','#3483fa','#ff4757','#ffa502'],
+        borderWidth:2, borderRadius:6, stack:'sla' },
+      { type:'bar', label:'SLA Delayed', data:slaDelay,
+        backgroundColor:['rgba(255,71,87,0.3)','rgba(255,71,87,0.3)','rgba(255,71,87,0.65)','rgba(255,71,87,0.5)'],
+        borderColor:['#ff4757','#ff4757','#ff4757','#ff4757'],
+        borderWidth:2, borderRadius:6, stack:'sla' },
+      { type:'line', label:'% SLA On Time', data:slaPct,
+        borderColor:'#ffe600', borderWidth:2.5, pointRadius:6, pointBackgroundColor:'#ffe600',
+        tension:0.3, yAxisID:'ySLA', backgroundColor:'transparent' },
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    interaction:{ mode:'index', intersect:false },
+    plugins:{
+      legend:{ display:true, labels:{color:'#9ba3cc',font:{size:11},boxWidth:14,padding:12} },
+      tooltip: TT,
+      annotation:{ annotations:{
+        target:{ type:'line', yMin:99, yMax:99, scaleID:'ySLA',
+          borderColor:'rgba(46,213,115,0.5)', borderWidth:1.5, borderDash:[4,3],
+          label:{ display:true, content:'target ~99%', position:'end',
+            backgroundColor:'rgba(46,213,115,0.1)', color:'#2ed573', font:{size:10}, padding:{x:6,y:3}, borderRadius:4 }},
+        drop:{ type:'box', xMin:1.5, xMax:3.5, backgroundColor:'rgba(255,71,87,0.05)', borderWidth:0 },
+      }}
+    },
+    scales:{
+      x:{ grid:{color:'#2d3277'}, ticks:{color:'#9ba3cc',font:{size:12}} },
+      y:{ stacked:true, min:88, max:102, grid:{color:'#2d3277'},
+          ticks:{color:'#9ba3cc',font:{size:11},callback:v=>v+'%'},
+          title:{display:true,text:'% Acumulado',color:'#9ba3cc',font:{size:11}} },
+      ySLA:{ type:'linear', position:'right', min:88, max:102, grid:{drawOnChartArea:false},
+             ticks:{color:'rgba(255,230,0,0.7)',font:{size:11},callback:v=>v+'%'},
+             title:{display:true,text:'% On Time',color:'rgba(255,230,0,0.7)',font:{size:11}} }
+    }
+  }
+});
+</script>
+</body>
+</html>
