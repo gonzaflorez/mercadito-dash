@@ -215,6 +215,11 @@ tr:hover td{background:#f5fbff}
 
 @media(max-width:900px){.setup-grid{grid-template-columns:1fr 1fr}.kpi-grid{grid-template-columns:repeat(3,1fr)}.ficha-kpis{grid-template-columns:repeat(2,1fr)}.log-stats{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.setup-grid{grid-template-columns:1fr}.kpi-grid{grid-template-columns:repeat(2,1fr)}header{padding:0 16px}main{padding:16px 12px}.nav-tabs{padding:0 10px}}
+/* ── HISTORIAL ── */
+.hist-empty{text-align:center;padding:48px 24px;color:var(--text-muted);font-family:var(--font)}
+.hist-empty .icon{font-size:36px;margin-bottom:12px}
+.hist-actions{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.hist-leader-badge{font-family:var(--font);font-size:13px;font-weight:700;color:var(--mp-blue)}
 </style>
 </head>
 <body>
@@ -236,6 +241,7 @@ tr:hover td{background:#f5fbff}
   <button class="nav-tab" data-tab="tab-ranking">🏆 Ranking</button>
   <button class="nav-tab" data-tab="tab-resumen">📝 Resumen</button>
   <button class="nav-tab" data-tab="tab-comp">⚖ Comparar</button>
+  <button class="nav-tab" data-tab="tab-historial">🕒 Historial</button>
   <button class="nav-tab" data-tab="tab-log">📋 Uso del tablero</button>
 </nav>
 
@@ -482,6 +488,13 @@ tr:hover td{background:#f5fbff}
 <div class="tab-panel" id="tab-comp">
   <div class="section-header"><div class="section-title">⚖ Comparación: semana actual vs. anterior</div></div>
   <div id="comp-content"><div class="empty-state"><div class="icon">⚖</div><p>Cargá el archivo de la semana anterior en la pestaña Carga para activar la comparación.</p></div></div>
+</div>
+
+<!-- ══ HISTORIAL ══════════════════════════════════════════════════ -->
+<div class="tab-panel" id="tab-historial">
+  <div id="hist-content">
+    <div class="hist-empty"><div class="icon">🕒</div><p>Ingresá tu nombre en la pestaña <strong>Carga</strong> para ver tu historial.</p></div>
+  </div>
 </div>
 
 <!-- ══ USO DEL TABLERO ════════════════════════════════════════════ -->
@@ -1029,6 +1042,94 @@ function renderLog(){
     });
 }
 
+// ── Historial local ────────────────────────────────────────────────
+const HIST_MAX = 15;
+function histKey(leader){ return 'mercadito_hist_'+leader.trim().toLowerCase().replace(/\s+/g,'_'); }
+
+function guardarHistorial(leader, archivo, periodo, data, now){
+  const key=histKey(leader);
+  let hist=[];
+  try{hist=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+  const a=data.filter(r=>r.estado!=='Excluido');
+  const ok=a.filter(r=>r.estado==='OK').length;
+  const dev=a.filter(r=>r.estado==='Desvío').length;
+  const pct=a.length>0?Math.round(ok/a.length*100):0;
+  const usuarios=[...new Set(data.map(r=>r.usuario))].length;
+  hist.unshift({id:now.getTime(),fecha:fmtDate(now),hora:fmtTime(now),archivo,periodo,usuarios,ok,dev,pct,data});
+  if(hist.length>HIST_MAX)hist=hist.slice(0,HIST_MAX);
+  try{localStorage.setItem(key,JSON.stringify(hist))}catch(e){}
+}
+
+function renderHistorial(){
+  const leader=document.getElementById('leader-name').value.trim();
+  const cont=document.getElementById('hist-content');
+  if(!leader){
+    cont.innerHTML=`<div class="hist-empty"><div class="icon">🕒</div><p>Ingresá tu nombre en la pestaña <strong>Carga</strong> para ver tu historial.</p></div>`;
+    return;
+  }
+  let hist=[];
+  try{hist=JSON.parse(localStorage.getItem(histKey(leader))||'[]')}catch(e){}
+  if(hist.length===0){
+    cont.innerHTML=`<div class="hist-empty"><div class="icon">🕒</div><p>No hay análisis guardados para <strong>${leader}</strong>.<br>Cargá un archivo en la pestaña <strong>Carga</strong> para comenzar.</p></div>`;
+    return;
+  }
+  cont.innerHTML=`
+    <div class="hist-actions">
+      <span class="hist-leader-badge">🕒 Historial de ${leader} <span style="font-weight:400;color:var(--text-muted)">(${hist.length} análisis guardados)</span></span>
+      <button class="btn-secondary" style="font-size:12px;color:var(--desvio);border-color:var(--desvio)" onclick="limpiarHistorial()">🗑 Limpiar todo</button>
+    </div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table><thead><tr>
+          <th>#</th><th>Fecha</th><th>Hora</th><th>Archivo</th><th>Período</th>
+          <th>Usuarios</th><th>OK</th><th>Desvíos</th><th>Cumpl.</th><th>Acciones</th>
+        </tr></thead><tbody>
+        ${hist.map((e,i)=>`<tr>
+          <td style="color:var(--text-muted)">${i+1}</td>
+          <td><strong>${e.fecha}</strong></td>
+          <td style="font-family:var(--mono)">${e.hora}</td>
+          <td style="font-size:11px;color:var(--text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis" title="${e.archivo}">${e.archivo}</td>
+          <td>${e.periodo}</td>
+          <td style="color:var(--warning);font-weight:700">${e.usuarios}</td>
+          <td style="color:var(--ok);font-weight:700">${e.ok}</td>
+          <td style="color:var(--desvio);font-weight:700">${e.dev}</td>
+          <td style="color:var(--mp-teal);font-weight:700">${e.pct}%</td>
+          <td style="display:flex;gap:6px">
+            <button class="btn-primary" style="font-size:11px;padding:5px 12px" onclick="restaurarAnalisis(${e.id})">↩ Restaurar</button>
+            <button class="btn-secondary" style="font-size:11px;padding:5px 10px;color:var(--desvio);border-color:var(--desvio)" onclick="eliminarHistorial(${e.id})">✕</button>
+          </td>
+        </tr>`).join('')}
+        </tbody></table>
+      </div>
+    </div>`;
+}
+
+function restaurarAnalisis(id){
+  const leader=document.getElementById('leader-name').value.trim();
+  let hist=[];
+  try{hist=JSON.parse(localStorage.getItem(histKey(leader))||'[]')}catch(e){}
+  const entry=hist.find(e=>e.id===id);
+  if(!entry)return;
+  allResults=entry.data;
+  renderAll(entry.data,entry.periodo);
+}
+
+function eliminarHistorial(id){
+  const leader=document.getElementById('leader-name').value.trim();
+  const key=histKey(leader);
+  let hist=[];
+  try{hist=JSON.parse(localStorage.getItem(key)||'[]')}catch(e){}
+  localStorage.setItem(key,JSON.stringify(hist.filter(e=>e.id!==id)));
+  renderHistorial();
+}
+
+function limpiarHistorial(){
+  if(!confirm('¿Eliminás todo el historial guardado?'))return;
+  const leader=document.getElementById('leader-name').value.trim();
+  localStorage.removeItem(histKey(leader));
+  renderHistorial();
+}
+
 // ── Render general ─────────────────────────────────────────────────
 function renderAll(data,periodo){
   const usuarios=[...new Set(data.map(r=>r.usuario))];
@@ -1105,7 +1206,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   renderLog(); // carga el log al abrir
   document.querySelectorAll('.nav-tab').forEach(btn=>btn.addEventListener('click',()=>{
     switchTab(btn.dataset.tab);
-    if(btn.dataset.tab==='tab-log')renderLog(); // refresca al entrar a la pestaña
+    if(btn.dataset.tab==='tab-log')renderLog();
+    if(btn.dataset.tab==='tab-historial')renderHistorial(); // refresca al entrar a la pestaña
   }));
   document.getElementById('modal-close').addEventListener('click',()=>document.getElementById('modal-overlay').classList.remove('show'));
   document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('show')});
@@ -1141,6 +1243,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         const periodo=fechas.length>1?`${fechas[0]} – ${fechas[fechas.length-1]}`:fechas[0];
         const now=new Date();
         saveLog({lider:leader,site,fecha:fmtDate(now),hora:fmtTime(now),archivo:currentFile.name,periodo});
+        guardarHistorial(leader,currentFile.name,periodo,results,now);
         setProgress(100,'¡Listo!','');
         document.getElementById('header-meta').innerHTML=`${leader} &nbsp;|&nbsp; ${site} &nbsp;|&nbsp; ${fmtDate(now)} ${fmtTime(now)}`;
         renderAll(results,periodo);
